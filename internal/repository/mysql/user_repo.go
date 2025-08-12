@@ -1,8 +1,8 @@
 package mysql
 
 import (
-	g "gorm.io/gorm"
 	"github.com/dedegunawan/golang-clean-architecture/internal/domain/user"
+	g "gorm.io/gorm"
 )
 
 type userRepository struct{ db *g.DB }
@@ -19,6 +19,13 @@ func (r *userRepository) Create(u *user.User) error {
 func (r *userRepository) FindByID(id uint64) (*user.User, error) {
 	var u user.User
 	if err := r.db.First(&u, id).Error; err != nil {
+		return nil, err
+	}
+	return &u, nil
+}
+func (r *userRepository) FindByEmail(email string) (*user.User, error) {
+	var u user.User
+	if err := r.db.Where("Email = ?", email).First(&u).Error; err != nil {
 		return nil, err
 	}
 	return &u, nil

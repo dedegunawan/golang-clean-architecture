@@ -1,13 +1,14 @@
 package user
 
 import (
-	"golang.org/x/crypto/bcrypt"
 	"github.com/dedegunawan/golang-clean-architecture/pkg/logger"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type Service interface {
 	Register(name, email, password string) (*User, error)
 	Get(id uint64) (*User, error)
+	GetByEmail(email string) (*User, error)
 	List(page, size int) ([]User, int64, error)
 	UpdateAvatar(id uint64, url string) error
 	SetActive(id uint64, active bool) error
@@ -24,7 +25,9 @@ func NewService(r Repository, lg *logger.Logger) Service {
 
 func (s *service) Register(name, email, password string) (*User, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 	u := &User{
 		Name:         name,
 		Email:        email,
@@ -37,11 +40,19 @@ func (s *service) Register(name, email, password string) (*User, error) {
 	return u, nil
 }
 
+func (s *service) GetByEmail(email string) (*User, error) {
+	return s.repo.FindByEmail(email)
+}
+
 func (s *service) Get(id uint64) (*User, error) { return s.repo.FindByID(id) }
 
 func (s *service) List(page, size int) ([]User, int64, error) {
-	if page < 1 { page = 1 }
-	if size <= 0 || size > 100 { size = 10 }
+	if page < 1 {
+		page = 1
+	}
+	if size <= 0 || size > 100 {
+		size = 10
+	}
 	offset := (page - 1) * size
 	return s.repo.List(offset, size)
 }
